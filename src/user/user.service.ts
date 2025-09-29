@@ -2,17 +2,20 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { RegisterUserDTO } from 'src/auth/dto/register-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-
+import { LoginUserDTO } from 'src/auth/dto/login-user.dto';
+import bcrypt from 'bcrypt';
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
+
   async createUser(registerUserDto: RegisterUserDTO) {
     try {
       const createdUser = new this.userModel(registerUserDto);
@@ -31,6 +34,39 @@ export class UserService {
       }
 
       throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  async loginUser(loginUserDto: LoginUserDTO) {
+    try {
+      const existUser = await this.userModel.findOne({
+        email: loginUserDto.email,
+      });
+      if (!existUser) {
+        throw new BadRequestException('Invalid Credentials');
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        loginUserDto.password,
+        existUser.password,
+      );
+
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      return {
+        message: 'Login successful',
+        user: {
+          id: existUser._id,
+          fname: existUser.fname,
+          lname: existUser.lname,
+          email: existUser.email,
+        },
+      };
+    } catch (error: any) {
+      // Re-throw other errors as internal server error
+      throw new InternalServerErrorException(error.message || 'Login failed');
     }
   }
 }
