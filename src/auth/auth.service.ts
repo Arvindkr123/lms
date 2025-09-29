@@ -18,4 +18,12 @@ export class AuthService {
   async loginUser(loginUserDto: LoginUserDTO) {
     return await this.userService.loginUser(loginUserDto);
   }
+
+  async getUserByIdUser(_id: string) {
+    return await this.userService.getUserByIdUser(_id);
+  }
+
+  async deleteUserById(_id: string) {
+    return await this.userService.deleteUserById(_id);
+  }
 }

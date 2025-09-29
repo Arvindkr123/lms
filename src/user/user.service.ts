@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { RegisterUserDTO } from 'src/auth/dto/register-user.dto';
@@ -67,6 +68,45 @@ export class UserService {
     } catch (error: any) {
       // Re-throw other errors as internal server error
       throw new InternalServerErrorException(error.message || 'Login failed');
+    }
+  }
+
+  async getUserByIdUser(id: string) {
+    const user = await this.userModel.findById(id).exec();
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      id: user._id,
+      fname: user.fname,
+      lname: user.lname,
+      email: user.email,
+    };
+  }
+
+  async deleteUserById(id: string) {
+    try {
+      const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
+
+      if (!deletedUser) {
+        throw new NotFoundException('User not found');
+      }
+
+      return {
+        message: 'User deleted successfully',
+        user: {
+          id: deletedUser._id,
+          fname: deletedUser.fname,
+          lname: deletedUser.lname,
+          email: deletedUser.email,
+        },
+      };
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        error.message || 'Something went wrong while deleting user',
+      );
     }
   }
 }
