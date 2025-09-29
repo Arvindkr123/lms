@@ -26,4 +26,7 @@ export class AuthService {
   async deleteUserById(_id: string) {
     return await this.userService.deleteUserById(_id);
   }
+  async updateUserById(data: RegisterUserDTO, _id: string) {
+    return await this.userService.updateUserById(data, _id);
+  }
 }

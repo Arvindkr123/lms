@@ -109,4 +109,33 @@ export class UserService {
       );
     }
   }
+  async updateUserById(data: RegisterUserDTO, id: string) {
+    try {
+      const updatedUser = await this.userModel
+        .findByIdAndUpdate(
+          id, // you can pass id directly
+          { $set: { ...data } },
+          { new: true }, // return the updated document
+        )
+        .exec();
+
+      if (!updatedUser) {
+        throw new NotFoundException('User not found');
+      }
+
+      return {
+        message: 'User updated successfully',
+        user: {
+          id: updatedUser._id,
+          fname: updatedUser.fname,
+          lname: updatedUser.lname,
+          email: updatedUser.email,
+        },
+      };
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        error.message || 'Something went wrong while updating user',
+      );
+    }
+  }
 }
